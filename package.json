@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "pg": "^8.11.5"
+  },
+  "name": "employeedb",
+  "description": "Module 12 Challenge",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {
+    "inquirer": "^8.2.4",
+    "pg":"^8.11.5",
+    "dotenv": "^8.2.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "fairybones"
+  },
+  "keywords": [
+    "node",
+    "inquirer",
+    "pg"
+  ],
+  "author": "Annie Schalnat",
+  "license": "ISC"
+}
