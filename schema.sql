@@ -14,12 +14,8 @@ CREATE TABLE roles (
     id SERIAL PRIMARY KEY,
     title VARCHAR(30) UNIQUE NOT NULL,
     salary DECIMAL NOT NULL,
-
     department_id INTEGER NOT NULL,
-    JOIN department ON department.department_id = roles.department_id;
-
-    FOREIGN KEY(department_id)
-    REFERENCES department(id)
+    FOREIGN KEY(department_id) REFERENCES department(id)
 );
 
 -- Employees table linked to roles id
@@ -29,10 +25,6 @@ CREATE TABLE employee (
     last_name VARCHAR(30) NOT NULL,
     roles_id INTEGER NOT NULL,
     manager_id INTEGER,
-
     FOREIGN KEY (manager_id) REFERENCES employee(id)
-
     FOREIGN KEY (roles_id) REFERENCES roles(id)
-
-    JOIN roles ON roles.roles_id = employee.roles_id;
 );
