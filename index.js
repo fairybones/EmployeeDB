@@ -1,6 +1,23 @@
 // Import packages/modules needed to run this application
 const inquirer = require("inquirer");
-const pool = require("./db.js");
+// Set up database connection
+const { Pool } = require("pg");
+
+const pool = new Pool(
+  {
+    // user: process.env.DB_USER,
+    user: "postgres",
+    // password: process.env.DB_PASSWORD,
+    host: "localhost",
+    // database: process.env.DB_NAME,
+    database: "employees_db",
+    password: "wOw111!",
+  },
+
+  console.log(`Successfully connected to employees_db database.`)
+);
+
+pool.connect();
 
 // functions for queries to update db choices
 async function fetchDepartments() {
@@ -159,14 +176,14 @@ async function promptUser() {
       break;
     // Update an existing employee's role
     case "Update an employee role":
-      const updateEmployee = fetchEmployees();
+      const editEmployees = fetchEmployees();
       const allRoles = fetchRoles();
       const updates = await inquirer.prompt([
         {
           type: "list",
           name: "editEmployee",
           message: "Which employee do you want to update?",
-          choices: updateEmployee,
+          choices: editEmployees,
         },
         {
           type: "list",
@@ -188,14 +205,17 @@ async function promptUser() {
       break;
   }
 }
+// Initialize the application
+promptUser();
 
 // View all of department table
 async function viewDept() {
-  let query = `SELECT * FROM department`;
   try {
+    const query = `SELECT * FROM department`;
     const res = await pool.query(query);
-    console.log(res.rows);
-    promptUser();
+
+    console.table(res.rows);
+    await promptUser();
   } catch (err) {
     console.error("An error occurred:", err);
   }
@@ -203,11 +223,13 @@ async function viewDept() {
 
 // View all roles table
 async function viewRoles() {
-  let query = `SELECT * FROM roles`;
   try {
+    const query = `SELECT * FROM roles`;
     const res = await pool.query(query);
-    console.log(res.rows);
-    promptUser();
+
+    console.table(res.rows);
+    // return user to options menu
+    await promptUser();
   } catch (err) {
     console.error("An error occurred:", err);
   }
@@ -215,11 +237,12 @@ async function viewRoles() {
 
 // View all employees table
 async function viewEmployees() {
-  let query = `SELECT * FROM employee`;
   try {
+    const query = `SELECT * FROM employee`;
     const res = await pool.query(query);
-    console.log(res.rows);
-    promptUser();
+
+    console.table(res.rows);
+    await promptUser();
   } catch (err) {
     console.error("An error occurred:", err);
   }
@@ -227,14 +250,23 @@ async function viewEmployees() {
 
 // Update db if department is added
 async function addDepartment(department_name) {
+  let checkQuery = `SELECT * FROM department WHERE department_name = $1`;
   let query = `INSERT INTO department (department_name)
                 VALUES ($1)
                 RETURNING id, department_name`;
   const values = [department_name];
+
   try {
+    // check to see if department already exists
+    const checkRes = await pool.query(checkQuery, values);
+    if (checkRes.rows.length > 0) {
+      console.log("Department already exists:", checkRes.rows[0]);
+      await promptUser();
+      return;
+    } // else create new department
     const res = await pool.query(query, values);
     console.log("Department added!", res.rows[0]);
-    promptUser();
+    await promptUser();
   } catch (err) {
     console.error("An error occurred:", err);
   }
@@ -242,39 +274,43 @@ async function addDepartment(department_name) {
 
 // Update db if role is added
 async function addRole(title, salary, department_id) {
-  let query = `INSERT INTO roles (title, salary)
-                VALUES ($1)
+  let query = `INSERT INTO roles (title, salary, department_id)
+                VALUES ($1, $2, $3)
                 RETURNING id, title, salary, department_id`;
   const values = [title, salary, department_id];
+
   try {
     const res = await pool.query(query, values);
     console.log("New role added:", res.rows[0]);
-    promptUser();
+    await promptUser();
   } catch (err) {
     console.error("An error occurred:", err);
   }
 }
 
 // Update db if employee is added
-async function addEmployee(first_name, last_name, roles_id) {
-  let query = `INSERT INTO employee (first_name, last_name, roles_id)
-                VALUES ($1)
+async function addEmployee(first_name, last_name, roles_id, manager_id) {
+  let query = `INSERT INTO employee (first_name, last_name, roles_id, manager_id)
+                VALUES ($1, $2, $3, $4)
                 RETURNING id, first_name, last_name, roles_id, manager_id`;
-  const values = [first_name, last_name, roles_id];
+  const values = [first_name, last_name, roles_id, manager_id];
+
   try {
     const res = await pool.query(query, values);
     console.log("Employee added!", res.rows[0]);
-    promptUser();
+    await promptUser();
   } catch (err) {
     console.error("An error occurred:", err);
   }
 }
 
-async function updateEmployee() {
-  let query = `UPDATE employees_db
-                SET 
-                WHERE`;
-  const values = [];
+// Update db if an existing employee's role is changed
+async function updateEmployee(editEmployee, newRole) {
+  let query = `UPDATE employee
+                SET ($1, $2)
+                WHERE id = $`;
+  const values = [editEmployee, newRole];
+
   try {
     const res = await pool.query(query, values);
     console.log("Employee updated!", res.rows[0]);
@@ -283,6 +319,3 @@ async function updateEmployee() {
     console.error("An error occurred:", err);
   }
 }
-
-// Initialize the application
-promptUser();
