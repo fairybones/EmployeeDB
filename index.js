@@ -97,7 +97,7 @@ async function promptUser() {
     case "Add roles":
       // update departments list
       const departments = await fetchDepartments();
-      console.log(departments);
+      // console.log(departments);
       const newRole = await inquirer.prompt([
         {
           type: "input",
@@ -147,7 +147,7 @@ async function promptUser() {
           type: "list",
           name: "manager_id",
           message: "Select a manager or choose none to continue.",
-          choices: [...employees, "none"],
+          choices: [employees, "none"],
         },
       ]);
       console.log(
