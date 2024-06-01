@@ -1,22 +1,8 @@
 // Import packages/modules needed to run this application
 const inquirer = require("inquirer");
-// Set up database connection
-const { Pool } = require("pg");
 
-const pool = new Pool(
-  {
-    // user: process.env.DB_USER,
-    user: "postgres",
-    // password: process.env.DB_PASSWORD,
-    host: "localhost",
-    // database: process.env.DB_NAME,
-    database: "employees_db",
-    password: "wOw111!",
-  },
-
-  console.log(`Successfully connected to employees_db database.`)
-);
-
+// Import database connection
+const pool = require("./config/connection.js");
 pool.connect();
 
 // functions for queries to update db choices
@@ -110,7 +96,8 @@ async function promptUser() {
       break;
     case "Add roles":
       // update departments list
-      const departments = fetchDepartments();
+      const departments = await fetchDepartments();
+      console.log(departments);
       const newRole = await inquirer.prompt([
         {
           type: "input",
@@ -296,6 +283,13 @@ async function addEmployee(first_name, last_name, roles_id, manager_id) {
   const values = [first_name, last_name, roles_id, manager_id];
 
   try {
+    // check to see if employee already exists
+    const checkRes = await pool.query(checkQuery, values);
+    if (checkRes.rows.length > 0) {
+      console.log("Employee already exists:", checkRes.rows[0]);
+      await promptUser();
+      return;
+    } // else add new
     const res = await pool.query(query, values);
     console.log("Employee added!", res.rows[0]);
     await promptUser();
