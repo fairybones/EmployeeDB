@@ -146,8 +146,8 @@ async function promptUser() {
         {
           type: "list",
           name: "manager_id",
-          message: "Select a manager or choose none to continue.",
-          choices: [...employees, "none"],
+          message: "Select a manager for the employee.",
+          choices: employees,
         },
       ]);
       console.log(
@@ -301,8 +301,8 @@ async function addEmployee(first_name, last_name, roles_id, manager_id) {
 // Update db if an existing employee's role is changed
 async function updateEmployee(editEmployee, newRole) {
   let query = `UPDATE employee
-                SET ($1, $2)
-                WHERE id = $`;
+                SET roles_id = $1
+                WHERE id = $2`;
   const values = [editEmployee, newRole];
 
   try {
